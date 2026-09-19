@@ -1,0 +1,44 @@
+name: Supabase Keep-Alive
+
+# פונה ל-Supabase כל יומיים כדי שהפרויקט לא ייכנס להשהיה אוטומטית
+# בשל חוסר פעילות (שכבה חינמית).
+#
+# חשוב: הבקשה פונה לנתיב השורש של ה-REST API (ללא ציון טבלה), שמחזיר
+# את מסמך ה-OpenAPI שמתאר את הסכימה. הרשאות ה-GRANT בפרויקט ניתנו רק
+# ל-role authenticated (לא ל-anon), ולכן פנייה לטבלה כמו /rest/v1/categories
+# הייתה נכשלת עם שגיאת הרשאה (401). נתיב השורש לעומת זאת לא דורש הרשאת
+# גישה לאף טבלה - הוא רק דורש apikey תקין - ועדיין מגיע בפועל אל
+# מסד הנתונים (כדי לקרוא את מבנה הסכימה), כך שהוא משיג בדיוק את
+# האפקט הרצוי (פעילות אמיתית שמונעת השהיה) ומחזיר סטטוס 200 תקין,
+# בלי לפתוח שום גישה לנתונים למשתמש אנונימי ובלי להשתמש במפתח
+# ה-service_role או בסיסמת מסד הנתונים.
+
+on:
+  schedule:
+    - cron: "0 6 */2 * *" # כל יומיים בשעה 06:00 UTC
+  workflow_dispatch: {} # מאפשר גם הפעלה ידנית מלשונית Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API (root endpoint only)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "חסרים secrets בשם SUPABASE_URL ו-SUPABASE_ANON_KEY בהגדרות הריפו."
+            exit 1
+          fi
+
+          status=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/" \
+            -H "apikey: ${SUPABASE_ANON_KEY}")
+
+          echo "HTTP status: ${status}"
+
+          if [ "$status" != "200" ]; then
+            echo "צפוי היה סטטוס 200 מנתיב השורש של ה-REST API. משהו השתנה בהגדרות הפרויקט."
+            exit 1
+          fi
