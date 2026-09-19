@@ -51,7 +51,7 @@ export async function renderDetail(root, ctx) {
 
         ${
           recipe.notes
-            ? `<div><div class="section-label">הערות</div><div class="notes-box">${escapeHtml(recipe.notes)}</div></div>`
+            ? `<div><div class="section-label">המתכון</div><div class="notes-box">${escapeHtml(recipe.notes)}</div></div>`
             : ""
         }
 
@@ -74,8 +74,9 @@ export async function renderDetail(root, ctx) {
         }
 
         <div class="detail-actions">
+          <button class="btn secondary" id="btn-edit-bottom">✎ עריכת מתכון</button>
           ${recipe.recipe_images.length ? `<button class="btn secondary" id="btn-cooking">מצב בישול 👨‍🍳</button>` : ""}
-          <button class="btn ghost danger" id="btn-delete">מחיקת מתכון</button>
+          <button class="btn danger" id="btn-delete">מחיקת מתכון</button>
         </div>
       </div>
     </div>
@@ -85,6 +86,7 @@ export async function renderDetail(root, ctx) {
 
   root.querySelector("#btn-back").addEventListener("click", () => ctx.goList());
   root.querySelector("#btn-edit").addEventListener("click", () => ctx.goForm(recipe.id));
+  root.querySelector("#btn-edit-bottom").addEventListener("click", () => ctx.goForm(recipe.id));
 
   root.querySelector("#btn-fav").addEventListener("click", async (e) => {
     const newVal = !recipe.is_favorite;

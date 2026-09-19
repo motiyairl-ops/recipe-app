@@ -60,8 +60,13 @@ export async function renderForm(root, ctx) {
             <input id="title-input" type="text" value="${escapeHtml(formState.title)}" placeholder="לדוגמה: מרק עוף של סבתא" />
           </div>
 
+          <div class="field">
+            <label for="notes-input">המתכון</label>
+            <textarea id="notes-input" rows="8" placeholder="אפשר להקליד כאן את כל המתכון - מצרכים, אופן הכנה, הערות וטיפים. לא חובה לצרף תמונה.">${escapeHtml(formState.notes)}</textarea>
+          </div>
+
           <div>
-            <div class="section-label">תמונות</div>
+            <div class="section-label">תמונות (לא חובה)</div>
             <div class="image-picker-row">
               <button type="button" class="btn secondary" id="btn-camera">📷 צילום</button>
               <button type="button" class="btn secondary" id="btn-gallery">🖼️ מהגלריה</button>
@@ -87,11 +92,6 @@ export async function renderForm(root, ctx) {
             <div class="section-label">קישורים (אינסטגרם וכו')</div>
             <div id="links-list">${linksHtml()}</div>
             <button type="button" class="btn ghost small" id="btn-add-link">+ הוספת קישור</button>
-          </div>
-
-          <div class="field">
-            <label for="notes-input">הערות</label>
-            <textarea id="notes-input" rows="5" placeholder="הערות, שינויים, טיפים...">${escapeHtml(formState.notes)}</textarea>
           </div>
 
           <label class="group">

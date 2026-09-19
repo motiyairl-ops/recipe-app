@@ -130,6 +130,9 @@ async function render() {
 async function boot() {
   showSpinner("טוען...");
   try {
+    // בודקים אם כבר יש session שמור (מהתחברות קודמת) לפני שמציגים כל מסך.
+    // אם יש - מדלגים לגמרי על מסך ההתחברות ונכנסים ישר לאפליקציה.
+    // מסך ההתחברות מוצג רק אם אין session בכלל (getSession() מחזיר null).
     state.session = await getSession();
     if (state.session) {
       await refreshData();
@@ -142,9 +145,11 @@ async function boot() {
   }
   render();
 
+  // אין כאן שום signOut() אוטומטי - הניתוק היחיד קורה כשלוחצים בעצמכם על
+  // כפתור ההתנתקות (handleLogout). המאזין הזה רק מגיב אם ה-session עצמו
+  // כבר התבטל (למשל refresh token שפג או בוטל בצד השרת).
   onAuthStateChange((session) => {
     if (!session && state.session) {
-      // ניתוק לא צפוי (למשל טוקן שפג)
       state.session = null;
       render();
     }

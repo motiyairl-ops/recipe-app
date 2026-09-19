@@ -115,7 +115,7 @@ a { color: var(--color-primary-dark); }
 .btn.full { width: 100%; }
 .btn.secondary { background: #fff; color: var(--color-primary); border: 1px solid var(--color-primary); }
 .btn.ghost { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); }
-.btn.danger { background: var(--color-danger); }
+.btn.danger { background: var(--color-danger); color: #fff; border-color: var(--color-danger); }
 .btn.small { padding: 6px 12px; font-size: 14px; border-radius: 10px; }
 .btn.icon-only { padding: 8px; border-radius: 50%; width: 40px; height: 40px; }
 
