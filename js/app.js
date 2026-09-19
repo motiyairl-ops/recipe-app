@@ -1,11 +1,12 @@
 import { state } from "./state.js";
-import { getSession, onAuthStateChange, signOut, fetchAllData, getSignedUrls } from "./db.js";
+import { getSession, onAuthStateChange, fetchAllData, getSignedUrls } from "./db.js";
 import { renderLogin } from "./ui/login.js";
 import { renderHome } from "./ui/home.js";
 import { renderList } from "./ui/list.js";
 import { renderDetail } from "./ui/detail.js";
 import { renderForm } from "./ui/form.js";
 import { renderCategoryModal } from "./ui/categories.js";
+import { renderBackupModal } from "./ui/backupModal.js";
 import { renderCooking, releaseWakeLock } from "./ui/cooking.js";
 import { runBackup } from "./backup.js";
 import { showSpinner, hideSpinner, showToast } from "./ui/common.js";
@@ -13,7 +14,7 @@ import { showSpinner, hideSpinner, showToast } from "./ui/common.js";
 const appRoot = document.getElementById("app");
 const modalRoot = document.getElementById("modal-root");
 
-state.ui = { screen: "home", currentId: null, showFilters: false };
+state.ui = { screen: "home", currentId: null, showFilters: false, listTitle: "כל המתכונים" };
 
 const ctx = {
   get currentId() {
@@ -25,10 +26,10 @@ const ctx = {
   goForm,
   goCooking,
   openCategoryModal,
+  openBackupModal,
   closeModal,
   refreshData,
   runBackup: handleBackup,
-  logout: handleLogout,
   onLoginSuccess: handleLoginSuccess,
 };
 
@@ -69,22 +70,16 @@ function openCategoryModal() {
   renderCategoryModal(modalRoot, ctx);
 }
 
+function openBackupModal() {
+  renderBackupModal(modalRoot, ctx);
+}
+
 function closeModal() {
   modalRoot.innerHTML = "";
 }
 
 async function handleBackup() {
   await runBackup();
-}
-
-async function handleLogout() {
-  releaseWakeLock();
-  await signOut();
-  state.session = null;
-  state.recipes = [];
-  state.categories = [];
-  state.thumbUrls = new Map();
-  render();
 }
 
 async function handleLoginSuccess() {
@@ -157,8 +152,8 @@ async function boot() {
   }
   render();
 
-  // אין כאן שום signOut() אוטומטי - הניתוק היחיד קורה כשלוחצים בעצמכם על
-  // כפתור ההתנתקות (handleLogout). המאזין הזה רק מגיב אם ה-session עצמו
+  // אין כאן שום signOut() אוטומטי - אין כפתור התנתקות ידני במסך הבית
+  // (המשתמשת נשארת מחוברת). המאזין הזה רק מגיב אם ה-session עצמו
   // כבר התבטל (למשל refresh token שפג או בוטל בצד השרת).
   onAuthStateChange((session) => {
     if (!session && state.session) {

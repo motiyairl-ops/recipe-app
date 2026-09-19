@@ -4,7 +4,6 @@ import { escapeHtml } from "./common.js";
 
 export function renderHome(root, ctx) {
   const totalCount = state.recipes.length;
-  const favCount = state.recipes.filter((r) => r.is_favorite).length;
 
   const counts = new Map();
   for (const c of state.categories) counts.set(c.id, 0);
@@ -19,23 +18,17 @@ export function renderHome(root, ctx) {
       <div class="topbar">
         <h1>המתכונים של איילת</h1>
         <div class="actions">
-          <button class="icon-btn" id="btn-search" title="חיפוש בכל המתכונים">🔎</button>
-          <button class="icon-btn" id="btn-categories" title="ניהול קטגוריות ואחסון">🏷️</button>
-          <button class="icon-btn" id="btn-backup" title="גיבוי">💾</button>
-          <button class="icon-btn" id="btn-logout" title="התנתקות">⏻</button>
+          <button class="icon-btn" id="btn-search" title="חיפוש מתכון">🔎</button>
+          <button class="icon-btn" id="btn-categories" title="ניהול קטגוריות">🏷️</button>
+          <button class="icon-btn" id="btn-backup" title="גיבוי ואחסון">💾</button>
         </div>
       </div>
 
       <div class="home-grid">
-        <button class="home-tile home-tile-accent" data-action="all">
+        <button class="home-tile home-tile-accent home-tile-full" data-action="all">
           <span class="home-tile-icon">📖</span>
           <span class="home-tile-name">כל המתכונים</span>
           <span class="home-tile-count">${totalCount}</span>
-        </button>
-        <button class="home-tile home-tile-accent" data-action="favorites">
-          <span class="home-tile-icon">★</span>
-          <span class="home-tile-name">מועדפים</span>
-          <span class="home-tile-count">${favCount}</span>
         </button>
         ${state.categories
           .map(
@@ -59,29 +52,30 @@ export function renderHome(root, ctx) {
   `;
 
   root.querySelector("#btn-search").addEventListener("click", () => {
+    state.filters.text = "";
+    state.filters.categoryIds = [];
+    state.filters.madeFilter = "all";
+    state.ui.listTitle = "חיפוש מתכון";
     state.ui.showFilters = true;
     ctx.goList();
   });
   root.querySelector("#btn-categories").addEventListener("click", () => ctx.openCategoryModal());
-  root.querySelector("#btn-backup").addEventListener("click", () => ctx.runBackup());
-  root.querySelector("#btn-logout").addEventListener("click", () => ctx.logout());
+  root.querySelector("#btn-backup").addEventListener("click", () => ctx.openBackupModal());
   root.querySelector("#fab-add").addEventListener("click", () => ctx.goForm(null));
 
   root.querySelectorAll(".home-tile").forEach((tile) => {
     tile.addEventListener("click", () => {
       const action = tile.dataset.action;
       state.filters.text = "";
-      state.filters.favoritesOnly = false;
       state.filters.madeFilter = "all";
       state.filters.categoryIds = [];
 
-      if (action === "favorites") {
-        state.filters.favoritesOnly = true;
-        state.ui.showFilters = true;
-      } else if (action === "category") {
+      if (action === "category") {
         state.filters.categoryIds = [tile.dataset.id];
-        state.ui.showFilters = true;
+        state.ui.listTitle = tile.querySelector(".home-tile-name").textContent;
+        state.ui.showFilters = false;
       } else {
+        state.ui.listTitle = "כל המתכונים";
         state.ui.showFilters = false;
       }
       ctx.goList();

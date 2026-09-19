@@ -21,7 +21,6 @@ export async function renderForm(root, ctx) {
   const formState = {
     title: existing?.title || "",
     notes: existing?.notes || "",
-    isFavorite: existing?.is_favorite || false,
     selectedCategoryIds: new Set(existing ? existing.recipe_categories.map((rc) => rc.category_id) : []),
     links: existing ? existing.recipe_links.map((l) => ({ title: l.title, url: l.url })) : [],
     // images: {kind:'existing', id, storage_path, previewUrl} | {kind:'new', file, previewUrl}
@@ -94,11 +93,6 @@ export async function renderForm(root, ctx) {
             <button type="button" class="btn ghost small" id="btn-add-link">+ הוספת קישור</button>
           </div>
 
-          <label class="group">
-            <input type="checkbox" id="fav-checkbox" ${formState.isFavorite ? "checked" : ""} />
-            סמן כמועדף ★
-          </label>
-
           <div class="form-actions">
             <button type="button" class="btn full" id="btn-save">שמירה</button>
           </div>
@@ -149,8 +143,6 @@ export async function renderForm(root, ctx) {
 
     const notesInput = root.querySelector("#notes-input");
     notesInput.addEventListener("input", (e) => (formState.notes = e.target.value));
-
-    root.querySelector("#fav-checkbox").addEventListener("change", (e) => (formState.isFavorite = e.target.checked));
 
     root.querySelector("#btn-camera").addEventListener("click", () => root.querySelector("#file-camera").click());
     root.querySelector("#btn-gallery").addEventListener("click", () => root.querySelector("#file-gallery").click());
@@ -235,7 +227,6 @@ export async function renderForm(root, ctx) {
       await updateRecipe(recipeId, {
         title,
         notes: formState.notes,
-        is_favorite: formState.isFavorite,
       });
 
       for (const removed of formState.removedExisting) {

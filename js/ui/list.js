@@ -1,9 +1,9 @@
 import { state, getFilteredRecipes, categoryName } from "../state.js";
-import { escapeHtml, starsHtml } from "./common.js";
+import { escapeHtml } from "./common.js";
 
 export function renderList(root, ctx) {
   const f = state.filters;
-  const headerTitle = getHeaderTitle();
+  const headerTitle = state.ui.listTitle || "מתכונים";
 
   root.innerHTML = `
     <div class="screen">
@@ -36,10 +36,6 @@ export function renderList(root, ctx) {
               <button data-mode="or" class="${f.matchMode === "or" ? "active" : ""}">או</button>
             </div>
           </div>
-          <label class="group">
-            <input type="checkbox" id="fav-only" ${f.favoritesOnly ? "checked" : ""} />
-            מועדפים בלבד
-          </label>
         </div>
 
         <div class="filter-row" style="margin-top:10px">
@@ -103,11 +99,6 @@ export function renderList(root, ctx) {
       });
     });
 
-    panel.querySelector("#fav-only").addEventListener("change", (e) => {
-      f.favoritesOnly = e.target.checked;
-      renderGrid();
-    });
-
     panel.querySelector("#made-filter").addEventListener("change", (e) => {
       f.madeFilter = e.target.value;
       renderGrid();
@@ -139,16 +130,6 @@ export function renderList(root, ctx) {
     });
   }
 
-  function getHeaderTitle() {
-    if (f.categoryIds.length === 1 && !f.favoritesOnly && !f.text) {
-      return categoryName(f.categoryIds[0]) || "מתכונים";
-    }
-    if (f.favoritesOnly && !f.categoryIds.length && !f.text) {
-      return "מועדפים";
-    }
-    return "כל המתכונים";
-  }
-
   function cardHtml(r) {
     const firstImage = r.recipe_images[0];
     const thumbUrl = firstImage ? state.thumbUrls.get(firstImage.storage_path) : null;
@@ -158,12 +139,10 @@ export function renderList(root, ctx) {
       <button class="recipe-card" data-id="${r.id}">
         <div class="thumb">
           ${thumbUrl ? `<img src="${thumbUrl}" alt="" loading="lazy" />` : `<span class="placeholder">🍽️</span>`}
-          ${r.is_favorite ? `<span class="fav-badge">★</span>` : ""}
         </div>
         <div class="info">
           <div class="title">${escapeHtml(r.title || "(ללא כותרת)")}</div>
           ${cats ? `<div class="cats">${escapeHtml(cats)}</div>` : ""}
-          ${r.rating ? `<div class="stars">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</div>` : ""}
         </div>
       </button>
     `;

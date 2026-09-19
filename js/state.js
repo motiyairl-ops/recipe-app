@@ -9,7 +9,6 @@ export const state = {
     text: "",
     categoryIds: [], // מזהי קטגוריות שנבחרו לסינון
     matchMode: "and", // 'and' | 'or'
-    favoritesOnly: false,
     madeFilter: "all", // 'all' | 'made' | 'not-made'
     sortBy: "created-desc", // 'created-desc' | 'last-made-desc' | 'title-asc'
   },
@@ -29,7 +28,6 @@ export function getFilteredRecipes() {
   const text = f.text.trim().toLowerCase();
 
   let list = state.recipes.filter((r) => {
-    if (f.favoritesOnly && !r.is_favorite) return false;
     if (f.madeFilter === "made" && !r.made) return false;
     if (f.madeFilter === "not-made" && r.made) return false;
 

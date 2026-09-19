@@ -204,14 +204,6 @@ export async function reorderRecipeImages(images) {
   }
 }
 
-export async function toggleFavorite(recipeId, value) {
-  await updateRecipe(recipeId, { is_favorite: value });
-}
-
-export async function setRating(recipeId, rating) {
-  await updateRecipe(recipeId, { rating });
-}
-
 export async function markMade(recipeId, madeDate) {
   await updateRecipe(recipeId, { made: true, last_made_at: madeDate });
 }

@@ -1,6 +1,6 @@
 import { state, findRecipe, categoryName } from "../state.js";
 import { escapeHtml, formatDate, showToast, showSpinner, hideSpinner, confirmDialog } from "./common.js";
-import { getSignedUrls, toggleFavorite, setRating, markMade, unmarkMade, deleteRecipe } from "../db.js";
+import { getSignedUrls, markMade, unmarkMade, deleteRecipe } from "../db.js";
 
 export async function renderDetail(root, ctx) {
   const recipe = findRecipe(ctx.currentId);
@@ -16,7 +16,7 @@ export async function renderDetail(root, ctx) {
   root.innerHTML = `
     <div class="screen">
       <div class="sub-header">
-        <button class="icon-btn" id="btn-back">→</button>
+        <button class="icon-btn" id="btn-back" title="חזרה">→</button>
         <div class="title">${escapeHtml(recipe.title || "(ללא כותרת)")}</div>
         <button class="icon-btn" id="btn-edit" title="עריכה">✎</button>
       </div>
@@ -32,14 +32,7 @@ export async function renderDetail(root, ctx) {
       </div>
 
       <div class="detail-body">
-        <div class="detail-title-row">
-          <div>
-            ${cats.length ? `<div class="cats">${escapeHtml(cats.join(" · "))}</div>` : ""}
-          </div>
-          <button class="icon-btn" id="btn-fav" title="מועדף">${recipe.is_favorite ? "★" : "☆"}</button>
-        </div>
-
-        <div id="rating-holder"></div>
+        ${cats.length ? `<div class="cats">${escapeHtml(cats.join(" · "))}</div>` : ""}
 
         <div class="made-row">
           <label>
@@ -82,22 +75,9 @@ export async function renderDetail(root, ctx) {
     </div>
   `;
 
-  renderStars();
-
   root.querySelector("#btn-back").addEventListener("click", () => ctx.goList());
   root.querySelector("#btn-edit").addEventListener("click", () => ctx.goForm(recipe.id));
   root.querySelector("#btn-edit-bottom").addEventListener("click", () => ctx.goForm(recipe.id));
-
-  root.querySelector("#btn-fav").addEventListener("click", async (e) => {
-    const newVal = !recipe.is_favorite;
-    e.target.textContent = newVal ? "★" : "☆";
-    try {
-      await toggleFavorite(recipe.id, newVal);
-      recipe.is_favorite = newVal;
-    } catch {
-      showToast("שגיאה בשמירה");
-    }
-  });
 
   root.querySelector("#made-checkbox").addEventListener("change", async (e) => {
     try {
@@ -135,27 +115,6 @@ export async function renderDetail(root, ctx) {
       hideSpinner();
     }
   });
-
-  function renderStars() {
-    const holder = root.querySelector("#rating-holder");
-    const r = recipe.rating || 0;
-    holder.innerHTML = `<span class="star-rating" id="rating-stars">${[1, 2, 3, 4, 5]
-      .map((i) => `<span class="star ${i <= r ? "filled" : ""}" data-star="${i}">★</span>`)
-      .join("")}</span>`;
-    holder.querySelectorAll("[data-star]").forEach((starEl) => {
-      starEl.addEventListener("click", async () => {
-        const val = Number(starEl.dataset.star);
-        const newRating = recipe.rating === val ? null : val;
-        try {
-          await setRating(recipe.id, newRating);
-          recipe.rating = newRating;
-          renderStars();
-        } catch {
-          showToast("שגיאה בשמירת הדירוג");
-        }
-      });
-    });
-  }
 }
 
 async function ensureImageUrls(recipe) {
