@@ -3,15 +3,11 @@ name: Supabase Keep-Alive
 # פונה ל-Supabase כל יומיים כדי שהפרויקט לא ייכנס להשהיה אוטומטית
 # בשל חוסר פעילות (שכבה חינמית).
 #
-# חשוב: הבקשה פונה לנתיב השורש של ה-REST API (ללא ציון טבלה), שמחזיר
-# את מסמך ה-OpenAPI שמתאר את הסכימה. הרשאות ה-GRANT בפרויקט ניתנו רק
-# ל-role authenticated (לא ל-anon), ולכן פנייה לטבלה כמו /rest/v1/categories
-# הייתה נכשלת עם שגיאת הרשאה (401). נתיב השורש לעומת זאת לא דורש הרשאת
-# גישה לאף טבלה - הוא רק דורש apikey תקין - ועדיין מגיע בפועל אל
-# מסד הנתונים (כדי לקרוא את מבנה הסכימה), כך שהוא משיג בדיוק את
-# האפקט הרצוי (פעילות אמיתית שמונעת השהיה) ומחזיר סטטוס 200 תקין,
-# בלי לפתוח שום גישה לנתונים למשתמש אנונימי ובלי להשתמש במפתח
-# ה-service_role או בסיסמת מסד הנתונים.
+# הבקשה קוראת לפונקציית RPC בשם keep_alive() (ראו supabase-keepalive-function.sql).
+# הפונקציה לא נוגעת בשום טבלה של מתכונים/קטגוריות - היא רק מחזירה את
+# הזמן הנוכחי של השרת. ל-role anon יש הרשאת EXECUTE אך ורק על הפונקציה
+# הזו, ואין לו שום הרשאה על אף טבלה. זו הסיבה שהבקשה מצליחה (200) בלי
+# לפתוח גישה לנתונים ובלי להשתמש במפתח service_role או בסיסמת מסד הנתונים.
 
 on:
   schedule:
@@ -22,7 +18,7 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API (root endpoint only)
+      - name: Call keep_alive() RPC
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -32,13 +28,17 @@ jobs:
             exit 1
           fi
 
-          status=$(curl -sS -o /dev/null -w "%{http_code}" \
-            "${SUPABASE_URL}/rest/v1/" \
-            -H "apikey: ${SUPABASE_ANON_KEY}")
+          response_file=$(mktemp)
+          status=$(curl -sS -o "$response_file" -w "%{http_code}" -X POST \
+            "${SUPABASE_URL}/rest/v1/rpc/keep_alive" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
 
           echo "HTTP status: ${status}"
+          echo "Response body: $(cat "$response_file")"
 
           if [ "$status" != "200" ]; then
-            echo "צפוי היה סטטוס 200 מנתיב השורש של ה-REST API. משהו השתנה בהגדרות הפרויקט."
+            echo "צפוי היה סטטוס 200 מקריאה ל-keep_alive(). ודאו שהפונקציה וההרשאות קיימות (supabase-keepalive-function.sql)."
             exit 1
           fi
