@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { getSession, onAuthStateChange, signOut, fetchAllData, getSignedUrls } from "./db.js";
 import { renderLogin } from "./ui/login.js";
+import { renderHome } from "./ui/home.js";
 import { renderList } from "./ui/list.js";
 import { renderDetail } from "./ui/detail.js";
 import { renderForm } from "./ui/form.js";
@@ -12,12 +13,13 @@ import { showSpinner, hideSpinner, showToast } from "./ui/common.js";
 const appRoot = document.getElementById("app");
 const modalRoot = document.getElementById("modal-root");
 
-state.ui = { screen: "list", currentId: null, showFilters: false };
+state.ui = { screen: "home", currentId: null, showFilters: false };
 
 const ctx = {
   get currentId() {
     return state.ui.currentId;
   },
+  goHome,
   goList,
   goDetail,
   goForm,
@@ -29,6 +31,13 @@ const ctx = {
   logout: handleLogout,
   onLoginSuccess: handleLoginSuccess,
 };
+
+function goHome() {
+  releaseWakeLock();
+  state.ui.screen = "home";
+  state.ui.currentId = null;
+  render();
+}
 
 function goList() {
   releaseWakeLock();
@@ -81,7 +90,7 @@ async function handleLogout() {
 async function handleLoginSuccess() {
   state.session = await getSession();
   await refreshData();
-  goList();
+  goHome();
 }
 
 async function refreshData() {
@@ -122,8 +131,11 @@ async function render() {
     case "cooking":
       await renderCooking(appRoot, ctx);
       break;
-    default:
+    case "list":
       renderList(appRoot, ctx);
+      break;
+    default:
+      renderHome(appRoot, ctx);
   }
 }
 

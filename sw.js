@@ -1,7 +1,7 @@
 // Service Worker בסיסי: שומר במטמון את קבצי המעטפת של האפליקציה (HTML/CSS/JS/אייקונים)
 // כדי שהאפליקציה תיפתח מהר גם ברשת חלשה. קריאות ל-Supabase (הנתונים עצמם) תמיד עוברות ברשת.
 
-const CACHE_NAME = "recipe-app-shell-v3";
+const CACHE_NAME = "recipe-app-shell-v4";
 
 const SHELL_FILES = [
   "./",
@@ -17,6 +17,7 @@ const SHELL_FILES = [
   "./js/backup.js",
   "./js/ui/common.js",
   "./js/ui/login.js",
+  "./js/ui/home.js",
   "./js/ui/list.js",
   "./js/ui/detail.js",
   "./js/ui/form.js",

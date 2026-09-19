@@ -1,15 +1,39 @@
 import { state } from "../state.js";
 import { escapeHtml, showToast, showSpinner, hideSpinner, confirmDialog } from "./common.js";
-import { addCategory, renameCategory, deleteCategory } from "../db.js";
+import { addCategory, renameCategory, deleteCategory, getStorageUsage } from "../db.js";
+
+const FREE_TIER_STORAGE_MB = 1024; // מכסת האחסון בשכבה החינמית של Supabase (1GB)
 
 export function renderCategoryModal(root, ctx) {
+  const storageState = { loading: true, text: "בודק נפח אחסון..." };
+  loadStorageInfo();
   paint();
+
+  async function loadStorageInfo() {
+    const recipeIds = state.recipes.filter((r) => r.recipe_images.length).map((r) => r.id);
+    try {
+      const { totalBytes, fileCount } = await getStorageUsage(recipeIds);
+      const usedMb = totalBytes / (1024 * 1024);
+      const pct = Math.min(100, (usedMb / FREE_TIER_STORAGE_MB) * 100);
+      const mbLabel = usedMb < 0.1 && fileCount ? "<0.1" : usedMb.toFixed(1);
+      storageState.loading = false;
+      storageState.text = `נפח תמונות בשימוש: ${mbLabel}MB מתוך ${FREE_TIER_STORAGE_MB}MB (1GB) - כ-${pct.toFixed(
+        1
+      )}% · ${fileCount} תמונות`;
+    } catch {
+      storageState.loading = false;
+      storageState.text = "לא הצלחתי לבדוק כרגע את נפח האחסון.";
+    }
+    const el = root.querySelector("#storage-info");
+    if (el) el.textContent = storageState.text;
+  }
 
   function paint() {
     root.innerHTML = `
       <div class="modal-overlay" id="overlay">
         <div class="modal-sheet">
           <h2>ניהול קטגוריות</h2>
+          <div class="storage-info" id="storage-info">${escapeHtml(storageState.text)}</div>
           <div id="category-rows">${rowsHtml()}</div>
           <div class="category-manage-row" style="border-bottom:none; margin-top:10px;">
             <input type="text" id="new-cat-input" placeholder="קטגוריה חדשה..." />

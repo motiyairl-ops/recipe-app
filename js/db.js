@@ -85,6 +85,28 @@ export async function countRecipesInCategory(recipes, categoryId) {
 
 // ---------- תמונות ----------
 
+/**
+ * מעריך את נפח האחסון (בבייטים) של תמונות המתכונים בדלי ה-Storage.
+ * עובר תיקייה-תיקייה (לפי מזהה מתכון) כי ה-API של Storage לא תומך
+ * ברשימה רקורסיבית של כל הדלי בבת אחת.
+ */
+export async function getStorageUsage(recipeIds) {
+  let totalBytes = 0;
+  let fileCount = 0;
+  for (const recipeId of recipeIds) {
+    const { data, error } = await supabase.storage.from(IMAGES_BUCKET).list(recipeId, { limit: 1000 });
+    if (error || !data) continue;
+    for (const item of data) {
+      const size = item?.metadata?.size;
+      if (typeof size === "number") {
+        totalBytes += size;
+        fileCount++;
+      }
+    }
+  }
+  return { totalBytes, fileCount };
+}
+
 /** מחזיר Map של storage_path -> קישור חתום, לרשימת נתיבים */
 export async function getSignedUrls(paths) {
   const map = new Map();

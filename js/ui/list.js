@@ -3,16 +3,15 @@ import { escapeHtml, starsHtml } from "./common.js";
 
 export function renderList(root, ctx) {
   const f = state.filters;
+  const headerTitle = getHeaderTitle();
 
   root.innerHTML = `
     <div class="screen">
       <div class="topbar">
-        <h1>המתכונים של איילת</h1>
+        <button class="icon-btn" id="btn-home" title="חזרה לקטגוריות">🏠</button>
+        <h1>${escapeHtml(headerTitle)}</h1>
         <div class="actions">
-          <button class="icon-btn" id="btn-search" title="חיפוש">🔎</button>
-          <button class="icon-btn" id="btn-categories" title="קטגוריות">🏷️</button>
-          <button class="icon-btn" id="btn-backup" title="גיבוי">💾</button>
-          <button class="icon-btn" id="btn-logout" title="התנתקות">⏻</button>
+          <button class="icon-btn" id="btn-search" title="חיפוש וסינון">🔎</button>
         </div>
       </div>
 
@@ -70,15 +69,14 @@ export function renderList(root, ctx) {
 
   renderGrid();
 
+  root.querySelector("#btn-home").addEventListener("click", () => ctx.goHome());
+
   root.querySelector("#btn-search").addEventListener("click", () => {
     state.ui = state.ui || {};
     state.ui.showFilters = !state.ui.showFilters;
     renderList(root, ctx);
   });
 
-  root.querySelector("#btn-categories").addEventListener("click", () => ctx.openCategoryModal());
-  root.querySelector("#btn-backup").addEventListener("click", () => ctx.runBackup());
-  root.querySelector("#btn-logout").addEventListener("click", () => ctx.logout());
   root.querySelector("#fab-add").addEventListener("click", () => ctx.goForm(null));
 
   const panel = root.querySelector("#filter-panel");
@@ -139,6 +137,16 @@ export function renderList(root, ctx) {
     listEl.querySelectorAll(".recipe-card").forEach((card) => {
       card.addEventListener("click", () => ctx.goDetail(card.dataset.id));
     });
+  }
+
+  function getHeaderTitle() {
+    if (f.categoryIds.length === 1 && !f.favoritesOnly && !f.text) {
+      return categoryName(f.categoryIds[0]) || "מתכונים";
+    }
+    if (f.favoritesOnly && !f.categoryIds.length && !f.text) {
+      return "מועדפים";
+    }
+    return "כל המתכונים";
   }
 
   function cardHtml(r) {

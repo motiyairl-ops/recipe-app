@@ -334,6 +334,48 @@ a { color: var(--color-primary-dark); }
   color: var(--color-star);
 }
 
+/* ---------- מסך בית: קטגוריות ---------- */
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 16px 14px 90px;
+}
+
+.home-tile {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.home-tile-icon { font-size: 30px; }
+
+.home-tile-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.home-tile-count {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.home-tile-accent {
+  background: #fdece1;
+  border-color: #f3cbb0;
+}
+
+.home-tile-accent .home-tile-name { color: var(--color-primary-dark); }
+
 .empty-state {
   text-align: center;
   color: var(--color-muted);
@@ -588,6 +630,15 @@ a { color: var(--color-primary-dark); }
   gap: 8px;
   padding: 8px 0;
   border-bottom: 1px solid var(--color-border);
+}
+
+.storage-info {
+  font-size: 13px;
+  color: var(--color-muted);
+  background: #fbf3ea;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
 }
 
 .category-manage-row input { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--color-border); }
