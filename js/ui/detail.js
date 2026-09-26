@@ -1,5 +1,6 @@
 import { state, findRecipe, categoryName } from "../state.js";
-import { escapeHtml, formatDate, showToast, showSpinner, hideSpinner, confirmDialog } from "./common.js";
+import { escapeHtml, formatDate, showToast, showSpinner, hideSpinner, confirmDialog, askPassword } from "./common.js";
+import { EDIT_PASSWORD } from "../config.js";
 import { getSignedUrls, markMade, unmarkMade, deleteRecipe } from "../db.js";
 
 export async function renderDetail(root, ctx) {
@@ -76,8 +77,11 @@ export async function renderDetail(root, ctx) {
   `;
 
   root.querySelector("#btn-back").addEventListener("click", () => ctx.goList());
-  root.querySelector("#btn-edit").addEventListener("click", () => ctx.goForm(recipe.id));
-  root.querySelector("#btn-edit-bottom").addEventListener("click", () => ctx.goForm(recipe.id));
+  const goEdit = async () => {
+    if (await askPassword(EDIT_PASSWORD, "סיסמה לעריכת מתכון")) ctx.goForm(recipe.id);
+  };
+  root.querySelector("#btn-edit").addEventListener("click", goEdit);
+  root.querySelector("#btn-edit-bottom").addEventListener("click", goEdit);
 
   root.querySelector("#made-checkbox").addEventListener("change", async (e) => {
     try {
@@ -100,6 +104,7 @@ export async function renderDetail(root, ctx) {
   if (cookingBtn) cookingBtn.addEventListener("click", () => ctx.goCooking(recipe.id));
 
   root.querySelector("#btn-delete").addEventListener("click", async () => {
+    if (!(await askPassword(EDIT_PASSWORD, "סיסמה למחיקת מתכון"))) return;
     const ok = await confirmDialog(`למחוק את המתכון "${recipe.title || "ללא כותרת"}"? הפעולה בלתי הפיכה.`);
     if (!ok) return;
     showSpinner("מוחק...");

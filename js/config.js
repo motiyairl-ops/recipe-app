@@ -9,3 +9,6 @@ export const IMAGES_BUCKET = "recipe-images";
 
 // כמה זמן (בשניות) קישור חתום לתמונה נשאר תקף
 export const SIGNED_URL_TTL = 60 * 60 * 6; // 6 שעות
+
+// סיסמה פשוטה לעריכה/מחיקה של מתכון - לא אבטחה, רק מניעת לחיצה בטעות.
+export const EDIT_PASSWORD = "1234";
