@@ -18,16 +18,23 @@ export function renderHome(root, ctx) {
       <div class="topbar">
         <h1>המתכונים של איילת</h1>
         <div class="actions">
-          <button class="icon-btn" id="btn-search" title="חיפוש מתכון">🔎</button>
+          <button class="icon-btn labeled" id="btn-search" title="חיפוש מתכון"><span>🔎</span><small>חיפוש</small></button>
           ${
             ctx.isViewer
               ? ""
-              : `<button class="icon-btn" id="btn-share" title="שיתוף המתכונים">📤</button>
-          <button class="icon-btn" id="btn-categories" title="ניהול קטגוריות">🏷️</button>
-          <button class="icon-btn" id="btn-backup" title="גיבוי ואחסון">💾</button>`
+              : `<button class="icon-btn labeled" id="btn-categories" title="ניהול קטגוריות"><span>🏷️</span><small>קטגוריות</small></button>
+          <button class="icon-btn labeled" id="btn-backup" title="גיבוי ואחסון"><span>💾</span><small>גיבוי</small></button>`
           }
         </div>
       </div>
+
+      ${
+        ctx.isViewer
+          ? ""
+          : `<div class="share-row">
+        <button class="share-pill" id="btn-share">🔗 שליחת קישור למתכונים</button>
+      </div>`
+      }
 
       <div class="home-grid">
         <button class="home-tile home-tile-accent home-tile-full" data-action="all">
