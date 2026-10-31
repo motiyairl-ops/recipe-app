@@ -9,7 +9,7 @@ import { renderForm } from "./ui/form.js";
 import { renderCategoryModal } from "./ui/categories.js";
 import { renderBackupModal } from "./ui/backupModal.js";
 import { renderShareModal } from "./ui/shareModal.js";
-import { renderShareInvalid } from "./ui/shareInvalid.js";
+import { renderShareInvalid, renderShareError } from "./ui/shareInvalid.js";
 import { renderCooking, releaseWakeLock } from "./ui/cooking.js";
 import { runBackup } from "./backup.js";
 import { showSpinner, hideSpinner, showToast } from "./ui/common.js";
@@ -143,6 +143,11 @@ async function render() {
     renderShareInvalid(appRoot, ctx);
     return;
   }
+  if (state.ui.screen === "share-error") {
+    closeModal();
+    renderShareError(appRoot, ctx);
+    return;
+  }
   if (!state.session && state.mode !== "viewer") {
     renderLogin(appRoot, ctx);
     return;
@@ -191,6 +196,9 @@ async function boot() {
     if (err && err.code === "invalid-share") {
       forgetShareToken();
       state.ui.screen = "share-invalid";
+    } else if (state.mode === "viewer") {
+      // תקלה בטעינה אצל צופה: מסך ברור עם "נסו שוב" במקום מסך ריק
+      state.ui.screen = "share-error";
     } else {
       showToast("שגיאה בטעינת הנתונים");
     }
