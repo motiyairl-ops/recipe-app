@@ -2,6 +2,7 @@
 import { supabase } from "./supabaseClient.js";
 import { IMAGES_BUCKET, SIGNED_URL_TTL } from "./config.js";
 import { compressImage, fileExtensionFor } from "./imageUtils.js";
+import { state } from "./state.js";
 
 // ---------- אימות ----------
 
@@ -110,7 +111,8 @@ export async function getStorageUsage(recipeIds) {
 /** מחזיר Map של storage_path -> קישור חתום, לרשימת נתיבים */
 export async function getSignedUrls(paths) {
   const map = new Map();
-  if (!paths.length) return map;
+  // במצב צפייה כל הקישורים החתומים כבר הגיעו מה-Edge Function, ואין לצופים גישה ישירה לאחסון
+  if (!paths.length || state.mode === "viewer") return map;
   const { data, error } = await supabase.storage.from(IMAGES_BUCKET).createSignedUrls(paths, SIGNED_URL_TTL);
   if (error) throw error;
   for (const item of data) {
@@ -210,4 +212,47 @@ export async function markMade(recipeId, madeDate) {
 
 export async function unmarkMade(recipeId) {
   await updateRecipe(recipeId, { made: false });
+}
+
+// ---------- שיתוף לצפייה בלבד ----------
+
+/** שליפת כל הנתונים לצופים, דרך ה-Edge Function, לפי קוד השיתוף. */
+export async function fetchSharedData(token) {
+  const { data, error } = await supabase.functions.invoke("shared-recipes", { body: { token } });
+  if (error) throw error;
+  if (!data || !data.ok) {
+    const err = new Error("קישור שיתוף לא תקף");
+    err.code = data?.reason === "invalid" ? "invalid-share" : "share-error";
+    throw err;
+  }
+  for (const r of data.recipes) {
+    r.recipe_images.sort((a, b) => a.sort_order - b.sort_order);
+  }
+  return data;
+}
+
+export async function getShareSettings() {
+  const { data, error } = await supabase.from("share_settings").select("token, message").eq("id", 1).single();
+  if (error) throw error;
+  return data;
+}
+
+export async function saveShareMessage(message) {
+  const { error } = await supabase
+    .from("share_settings")
+    .update({ message, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+  if (error) throw error;
+}
+
+/** יוצר קוד שיתוף חדש. הקישור הקודם מפסיק לעבוד מיד אצל כולם. */
+export async function resetShareToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const token = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  const { error } = await supabase
+    .from("share_settings")
+    .update({ token, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+  if (error) throw error;
+  return token;
 }

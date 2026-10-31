@@ -19,8 +19,13 @@ export function renderHome(root, ctx) {
         <h1>המתכונים של איילת</h1>
         <div class="actions">
           <button class="icon-btn" id="btn-search" title="חיפוש מתכון">🔎</button>
+          ${
+            ctx.isViewer
+              ? ""
+              : `<button class="icon-btn" id="btn-share" title="שיתוף המתכונים">📤</button>
           <button class="icon-btn" id="btn-categories" title="ניהול קטגוריות">🏷️</button>
-          <button class="icon-btn" id="btn-backup" title="גיבוי ואחסון">💾</button>
+          <button class="icon-btn" id="btn-backup" title="גיבוי ואחסון">💾</button>`
+          }
         </div>
       </div>
 
@@ -43,12 +48,13 @@ export function renderHome(root, ctx) {
       </div>
 
       ${
-        !state.categories.length
+        !state.categories.length && !ctx.isViewer
           ? `<div class="empty-state">אין עדיין קטגוריות. אפשר להוסיף דרך כפתור ה-🏷️ למעלה.</div>`
           : ""
       }
+      ${ctx.isViewer ? `<div class="viewer-note">👀 מצב צפייה בלבד</div>` : ""}
     </div>
-    <button class="fab" id="fab-add" title="הוספת מתכון">+</button>
+    ${ctx.isViewer ? "" : `<button class="fab" id="fab-add" title="הוספת מתכון">+</button>`}
   `;
 
   root.querySelector("#btn-search").addEventListener("click", () => {
@@ -59,9 +65,12 @@ export function renderHome(root, ctx) {
     state.ui.showFilters = true;
     ctx.goList();
   });
-  root.querySelector("#btn-categories").addEventListener("click", () => ctx.openCategoryModal());
-  root.querySelector("#btn-backup").addEventListener("click", () => ctx.openBackupModal());
-  root.querySelector("#fab-add").addEventListener("click", () => ctx.goForm(null));
+  if (!ctx.isViewer) {
+    root.querySelector("#btn-share").addEventListener("click", () => ctx.openShareModal());
+    root.querySelector("#btn-categories").addEventListener("click", () => ctx.openCategoryModal());
+    root.querySelector("#btn-backup").addEventListener("click", () => ctx.openBackupModal());
+    root.querySelector("#fab-add").addEventListener("click", () => ctx.goForm(null));
+  }
 
   root.querySelectorAll(".home-tile").forEach((tile) => {
     tile.addEventListener("click", () => {

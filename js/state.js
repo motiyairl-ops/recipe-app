@@ -2,6 +2,7 @@
 
 export const state = {
   session: null,
+  mode: "owner", // 'owner' (איילת, מחוברת) | 'viewer' (נכנס/ה דרך קישור שיתוף, צפייה בלבד)
   categories: [], // [{id, name, sort_order}]
   recipes: [], // כולל recipe_categories/recipe_images/recipe_links
   thumbUrls: new Map(), // storage_path -> signed url

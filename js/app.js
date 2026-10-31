@@ -1,5 +1,6 @@
 import { state } from "./state.js";
-import { getSession, onAuthStateChange, fetchAllData, getSignedUrls } from "./db.js";
+import { getSession, onAuthStateChange, fetchAllData, getSignedUrls, fetchSharedData } from "./db.js";
+import { readShareToken, forgetShareToken } from "./share.js";
 import { renderLogin } from "./ui/login.js";
 import { renderHome } from "./ui/home.js";
 import { renderList } from "./ui/list.js";
@@ -7,6 +8,8 @@ import { renderDetail } from "./ui/detail.js";
 import { renderForm } from "./ui/form.js";
 import { renderCategoryModal } from "./ui/categories.js";
 import { renderBackupModal } from "./ui/backupModal.js";
+import { renderShareModal } from "./ui/shareModal.js";
+import { renderShareInvalid } from "./ui/shareInvalid.js";
 import { renderCooking, releaseWakeLock } from "./ui/cooking.js";
 import { runBackup } from "./backup.js";
 import { showSpinner, hideSpinner, showToast } from "./ui/common.js";
@@ -20,6 +23,9 @@ const ctx = {
   get currentId() {
     return state.ui.currentId;
   },
+  get isViewer() {
+    return state.mode === "viewer";
+  },
   goHome,
   goList,
   goDetail,
@@ -27,6 +33,8 @@ const ctx = {
   goCooking,
   openCategoryModal,
   openBackupModal,
+  openShareModal,
+  goLogin,
   closeModal,
   refreshData,
   runBackup: handleBackup,
@@ -55,6 +63,7 @@ function goDetail(id) {
 }
 
 function goForm(id) {
+  if (state.mode === "viewer") return; // צופים לא מוסיפים ולא עורכים
   state.ui.screen = "form";
   state.ui.currentId = id;
   render();
@@ -74,6 +83,17 @@ function openBackupModal() {
   renderBackupModal(modalRoot, ctx);
 }
 
+function openShareModal() {
+  renderShareModal(modalRoot, ctx);
+}
+
+// מעבר ממסך "קישור לא פעיל" למסך ההתחברות (לאיילת עצמה)
+function goLogin() {
+  state.mode = "owner";
+  state.ui.screen = "home";
+  render();
+}
+
 function closeModal() {
   modalRoot.innerHTML = "";
 }
@@ -83,12 +103,21 @@ async function handleBackup() {
 }
 
 async function handleLoginSuccess() {
+  state.mode = "owner";
   state.session = await getSession();
   await refreshData();
   goHome();
 }
 
 async function refreshData() {
+  if (state.mode === "viewer") {
+    const data = await fetchSharedData(state.shareToken);
+    state.categories = data.categories;
+    state.recipes = data.recipes;
+    for (const [k, v] of Object.entries(data.imageUrls || {})) state.thumbUrls.set(k, v);
+    return;
+  }
+
   const { categories, recipes } = await fetchAllData();
   state.categories = categories;
   state.recipes = recipes;
@@ -109,7 +138,12 @@ async function refreshData() {
 }
 
 async function render() {
-  if (!state.session) {
+  if (state.ui.screen === "share-invalid") {
+    closeModal();
+    renderShareInvalid(appRoot, ctx);
+    return;
+  }
+  if (!state.session && state.mode !== "viewer") {
     renderLogin(appRoot, ctx);
     return;
   }
@@ -143,10 +177,23 @@ async function boot() {
     state.session = await getSession();
     if (state.session) {
       await refreshData();
+    } else {
+      // אין התחברות: אם הגיעו דרך קישור שיתוף (או שנשמר קוד מביקור קודם) - מצב צפייה בלבד
+      const token = readShareToken();
+      if (token) {
+        state.mode = "viewer";
+        state.shareToken = token;
+        await refreshData();
+      }
     }
   } catch (err) {
     console.error(err);
-    showToast("שגיאה בטעינת הנתונים");
+    if (err && err.code === "invalid-share") {
+      forgetShareToken();
+      state.ui.screen = "share-invalid";
+    } else {
+      showToast("שגיאה בטעינת הנתונים");
+    }
   } finally {
     hideSpinner();
   }

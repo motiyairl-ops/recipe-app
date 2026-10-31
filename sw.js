@@ -1,7 +1,7 @@
 // Service Worker בסיסי: שומר במטמון את קבצי המעטפת של האפליקציה (HTML/CSS/JS/אייקונים)
 // כדי שהאפליקציה תיפתח מהר גם ברשת חלשה. קריאות ל-Supabase (הנתונים עצמם) תמיד עוברות ברשת.
 
-const CACHE_NAME = "recipe-app-shell-v6";
+const CACHE_NAME = "recipe-app-shell-v7";
 
 const SHELL_FILES = [
   "./",
@@ -15,6 +15,7 @@ const SHELL_FILES = [
   "./js/state.js",
   "./js/imageUtils.js",
   "./js/backup.js",
+  "./js/share.js",
   "./js/ui/common.js",
   "./js/ui/login.js",
   "./js/ui/home.js",
@@ -23,6 +24,8 @@ const SHELL_FILES = [
   "./js/ui/form.js",
   "./js/ui/categories.js",
   "./js/ui/backupModal.js",
+  "./js/ui/shareModal.js",
+  "./js/ui/shareInvalid.js",
   "./js/ui/cooking.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -56,7 +59,8 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    // קישור שיתוף (?s=...) הוא אותו דף: מתעלמים מהפרמטרים כשמחפשים במטמון
+    caches.match(event.request, { ignoreSearch: event.request.mode === "navigate" }).then((cached) => {
       const networkFetch = fetch(event.request)
         .then((response) => {
           if (response && response.status === 200) {

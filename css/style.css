@@ -744,3 +744,81 @@ a { color: var(--color-primary-dark); }
 .pw-error.hidden { display: none; }
 .pw-actions { display: flex; gap: 10px; margin-top: 16px; }
 .pw-actions .btn { flex: 1; }
+
+/* ---------- שיתוף ---------- */
+
+.share-explain {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-muted);
+  margin: 0 0 14px;
+}
+
+#share-message {
+  width: 100%;
+  min-height: 110px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.share-hint {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.share-link-box {
+  font-size: 12px;
+  color: var(--color-muted);
+  background: #fbf3ea;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin: 12px 0;
+  word-break: break-all;
+  text-align: left;
+}
+
+.share-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.share-danger {
+  border-top: 1px solid var(--color-border);
+  padding-top: 14px;
+  margin-bottom: 6px;
+}
+
+.share-danger p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-muted);
+  margin: 6px 0 10px;
+}
+
+.viewer-note {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-muted);
+  padding: 4px 16px 20px;
+}
+
+.share-invalid-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-muted);
+  margin: 0 0 20px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  margin-top: 14px;
+  padding: 6px;
+}

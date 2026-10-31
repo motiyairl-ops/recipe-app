@@ -19,7 +19,7 @@ export async function renderDetail(root, ctx) {
       <div class="sub-header">
         <button class="icon-btn" id="btn-back" title="חזרה">→</button>
         <div class="title">${escapeHtml(recipe.title || "(ללא כותרת)")}</div>
-        <button class="icon-btn" id="btn-edit" title="עריכה">✎</button>
+        ${ctx.isViewer ? `<span style="width:38px"></span>` : `<button class="icon-btn" id="btn-edit" title="עריכה">✎</button>`}
       </div>
 
       <div class="detail-gallery">
@@ -35,13 +35,17 @@ export async function renderDetail(root, ctx) {
       <div class="detail-body">
         ${cats.length ? `<div class="cats">${escapeHtml(cats.join(" · "))}</div>` : ""}
 
-        <div class="made-row">
+        ${
+          ctx.isViewer
+            ? ""
+            : `<div class="made-row">
           <label>
             <input type="checkbox" id="made-checkbox" ${recipe.made ? "checked" : ""} />
             הכנתי את המתכון הזה
           </label>
           ${recipe.last_made_at ? `<span>· לאחרונה ב-${formatDate(recipe.last_made_at)}</span>` : ""}
-        </div>
+        </div>`
+        }
 
         ${
           recipe.notes
@@ -68,15 +72,22 @@ export async function renderDetail(root, ctx) {
         }
 
         <div class="detail-actions">
-          <button class="btn secondary" id="btn-edit-bottom">✎ עריכת מתכון</button>
+          ${ctx.isViewer ? "" : `<button class="btn secondary" id="btn-edit-bottom">✎ עריכת מתכון</button>`}
           ${recipe.recipe_images.length ? `<button class="btn secondary" id="btn-cooking">מצב בישול 👨‍🍳</button>` : ""}
-          <button class="btn danger" id="btn-delete">מחיקת מתכון</button>
+          ${ctx.isViewer ? "" : `<button class="btn danger" id="btn-delete">מחיקת מתכון</button>`}
         </div>
       </div>
     </div>
   `;
 
   root.querySelector("#btn-back").addEventListener("click", () => ctx.goList());
+
+  const cookingBtn = root.querySelector("#btn-cooking");
+  if (cookingBtn) cookingBtn.addEventListener("click", () => ctx.goCooking(recipe.id));
+
+  // מכאן והלאה: פעולות של איילת בלבד
+  if (ctx.isViewer) return;
+
   const goEdit = async () => {
     if (await askPassword(EDIT_PASSWORD, "סיסמה לעריכת מתכון")) ctx.goForm(recipe.id);
   };
@@ -99,9 +110,6 @@ export async function renderDetail(root, ctx) {
       showToast("שגיאה בשמירה");
     }
   });
-
-  const cookingBtn = root.querySelector("#btn-cooking");
-  if (cookingBtn) cookingBtn.addEventListener("click", () => ctx.goCooking(recipe.id));
 
   root.querySelector("#btn-delete").addEventListener("click", async () => {
     if (!(await askPassword(EDIT_PASSWORD, "סיסמה למחיקת מתכון"))) return;

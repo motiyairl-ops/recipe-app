@@ -39,7 +39,7 @@ export function renderList(root, ctx) {
         </div>
 
         <div class="filter-row" style="margin-top:10px">
-          <div class="group">
+          <div class="group ${ctx.isViewer ? "hidden" : ""}">
             <span>הכנה:</span>
             <select id="made-filter">
               <option value="all" ${f.madeFilter === "all" ? "selected" : ""}>הכל</option>
@@ -60,7 +60,7 @@ export function renderList(root, ctx) {
 
       <div id="recipe-list"></div>
     </div>
-    <button class="fab" id="fab-add" title="הוספת מתכון">+</button>
+    ${ctx.isViewer ? "" : `<button class="fab" id="fab-add" title="הוספת מתכון">+</button>`}
   `;
 
   renderGrid();
@@ -73,7 +73,8 @@ export function renderList(root, ctx) {
     renderList(root, ctx);
   });
 
-  root.querySelector("#fab-add").addEventListener("click", () => ctx.goForm(null));
+  const fab = root.querySelector("#fab-add");
+  if (fab) fab.addEventListener("click", () => ctx.goForm(null));
 
   const panel = root.querySelector("#filter-panel");
   if (panel) {
@@ -115,7 +116,9 @@ export function renderList(root, ctx) {
     const items = getFilteredRecipes();
 
     if (!state.recipes.length) {
-      listEl.innerHTML = `<div class="empty-state">עדיין אין מתכונים.<br>לוחצים על + כדי להוסיף את הראשון 🍲</div>`;
+      listEl.innerHTML = ctx.isViewer
+        ? `<div class="empty-state">עדיין אין מתכונים 🍲</div>`
+        : `<div class="empty-state">עדיין אין מתכונים.<br>לוחצים על + כדי להוסיף את הראשון 🍲</div>`;
       return;
     }
     if (!items.length) {
